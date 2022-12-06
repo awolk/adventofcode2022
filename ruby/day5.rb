@@ -1,4 +1,4 @@
-require_relative './aoc'
+require_relative './lib/aoc'
 
 ## Parse
 config_s, steps_s = AOC.get_input(5).split("\n\n")

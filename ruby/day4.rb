@@ -1,4 +1,4 @@
-require_relative './aoc'
+require_relative './lib/aoc'
 
 pairs = AOC.get_input(4).split.map do |line|
   line.split(',').map do |range|

@@ -1,4 +1,4 @@
-require_relative './aoc'
+require_relative './lib/aoc'
 
 def priority(item)
   # Z < a

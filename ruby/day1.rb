@@ -1,4 +1,4 @@
-require_relative './aoc'
+require_relative './lib/aoc'
 
 calories_per_elf = AOC.get_input(1).split("\n\n").map do |elf|
   elf.split.sum(&:to_i)
