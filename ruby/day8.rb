@@ -1,32 +1,30 @@
 require_relative './lib/aoc'
 
-grid = AOC.get_input(8).split("\n").map(&:chars).map { _1.map(&:to_i) }
-height = grid.length
-width = grid[0].length
+grid = AOC.digit_matrix(AOC.get_input(8))
+height = grid.row_count
+width = grid.column_count
 
-count = (0...height).sum do |r|
-  (0...width).count do |c|
-    tree = grid[r][c]
-    up = (0...r).none? { grid[_1][c] >= tree }
-    down = ((r+1)...height).none? { grid[_1][c] >= tree }
-    left = (0...c).none? { grid[r][_1] >= tree }
-    right = ((c+1)...width).none? { grid[r][_1] >= tree }
-    up || down || left || right
-  end
+visible_trees = grid.each_with_index.count do |tree, r, c|
+  row = grid.row(r)
+  col = grid.column(c)
+
+  up = col[...r].none? {_1 >= tree}
+  down = col[r+1..].none? { _1 >= tree }
+  left = row[...c].none? { _1 >= tree }
+  right = row[c+1..].none? { _1 >= tree }
+  up || down || left || right
 end
+puts "Part 1: #{visible_trees}"
 
-puts count
+best_score = grid.each_with_index.map do |tree, r, c|
+  row = grid.row(r)
+  col = grid.column(c)
 
-best = (0...height).flat_map do |r|
-  (0...width).map do |c|
-    tree = grid[r][c]
-    up = (r-1).downto(0).find_index { grid[_1][c] >= tree }&.+(1) || r
-    down = ((r+1)...height).find_index { grid[_1][c] >= tree }&.+(1) || (height - r - 1)
-    left = (c-1).downto(0).find_index { grid[r][_1] >= tree }&.+(1) || c
-    right = ((c+1)...width).find_index { grid[r][_1] >= tree }&.+(1) || (width - c - 1)
-    
-    up * down * left * right
-  end
+  up = col[...r].reverse.index { _1 >= tree }&.next || r
+  down = col[r+1..].index { _1 >= tree }&.next || (height - r - 1)
+  left = row[...c].reverse.index { _1 >= tree }&.next || c
+  right = row[c+1..].index { _1 >= tree }&.next || (width - c - 1)
+  
+  up * down * left * right
 end.max
-
-puts best
+puts "Part 2: #{best_score}"
