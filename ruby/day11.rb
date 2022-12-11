@@ -23,12 +23,12 @@ class Monkey
     @items.push(item)
   end
 
-  def take_turn(relief_dividend)
+  def take_turn(relief_divisor)
     while !@items.empty?
       @inspected += 1
       item = @items.shift
       item = @operator.call(item)
-      item /= relief_dividend
+      item /= relief_divisor
       item %= @remainder
       if item % @divisible_test == 0
         @true_target.give(item)
