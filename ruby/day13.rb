@@ -1,4 +1,5 @@
 require_relative './lib/aoc'
+require_relative './lib/parser'
 
 def cmp(left, right)
   if left.is_a?(Integer) && right.is_a?(Integer)
@@ -16,9 +17,10 @@ def cmp(left, right)
   end
 end
 
-pairs = AOC.get_input(13).split("\n\n").map do |pair_s|
-  pair_s.split("\n").map {|s| eval(s)}
-end
+parser = P.recursive do
+  P.int | P.str('[') >> self.delimited(',') << P.str(']')
+end.delimited("\n").delimited("\n\n")
+pairs = parser.parse_all(AOC.get_input(13))
 
 pt1 = pairs.each_with_index.sum do |(left, right), index|
   if cmp(left, right) <= 0

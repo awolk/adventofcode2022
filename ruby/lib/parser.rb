@@ -146,4 +146,16 @@ module P
       end
     end.reduce(&:|)
   end
+
+  def self.lazy(&blk)
+    Parser.new do |i|
+      blk.call.parse(i)
+    end
+  end
+
+  def self.recursive(&blk)
+    res = P.lazy do
+      res.instance_eval(&blk)
+    end
+  end
 end
