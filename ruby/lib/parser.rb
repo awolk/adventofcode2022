@@ -68,6 +68,7 @@ module P
 
     # Parse self delimited by delimiter
     def delimited(delimiter)
+      delimiter = P.str(delimiter) if delimiter.is_a?(String)
       (self & (delimiter >> self).repeated)
         .map { |hd, tl| [hd] + tl } |
         P.nothing([])
