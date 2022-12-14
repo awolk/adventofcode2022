@@ -46,7 +46,7 @@ op_parser =
   P.str('* old').map {lambda {|x| x * x}}
 monkey_parser = P.seq(
   "Monkey ", P.int, ":\n",
-  "  Starting items: ", P.int.delimited(P.str(", ")), "\n",
+  "  Starting items: ", P.int.delimited(", "), "\n",
   "  Operation: new = old ", op_parser, "\n",
   "  Test: divisible by ", P.int, "\n",
   "    If true: throw to monkey ", P.int, "\n",
@@ -54,7 +54,7 @@ monkey_parser = P.seq(
 ).map do |monkey_num, items, operator, divisible_test, true_target, false_target|
   [Monkey.new(items, operator, divisible_test), true_target, false_target]
 end
-monkeys_parser = monkey_parser.delimited(P.str("\n\n"))
+monkeys_parser = monkey_parser.delimited("\n\n")
 
 res = monkeys_parser.parse_all(AOC.get_input(11))
 
