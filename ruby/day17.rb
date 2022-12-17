@@ -1,6 +1,5 @@
 require 'set'
 require_relative './lib/aoc'
-require_relative './lib/parser'
 
 # ordered bottom to top
 ROCKS = [
@@ -15,18 +14,25 @@ class Chamber
   attr_reader :fallen_rocks, :max_height
 
   def initialize(jets)
-    @jets = jets.chars.cycle.lazy.map(&{"<" => -1, ">" => 1})
+    @jets = jets
     @fallen_rocks = 0
     @max_height = 0
     @rows = []
-
-    @rocks = ROCKS.cycle
+    @rocks_index = 0
+    @jets_index = 0
     next_rock
   end
 
   def next_rock
-    @current_rock = @rocks.next
+    @current_rock = ROCKS[@rocks_index]
     @current_rock_pos = [@max_height+3, 2]
+    @rocks_index = (@rocks_index + 1) % ROCKS.length
+  end
+
+  def next_jet
+    val = {"<" => -1, ">" => 1}[@jets[@jets_index]]
+    @jets_index = (@jets_index + 1) % @jets.length
+    val
   end
 
   def has_rock(row, col)
@@ -60,7 +66,7 @@ class Chamber
   end
 
   def step
-    try_move(0, @jets.next)
+    try_move(0, next_jet)
     did_move_down = try_move(-1, 0)
     if !did_move_down
       @fallen_rocks += 1
@@ -72,6 +78,16 @@ class Chamber
     end
   end
 
+  def place_rock
+    current_rocks = fallen_rocks
+    step while fallen_rocks == current_rocks
+  end
+
+  # represents state in the 2 cyclical inputs
+  def state
+    [@jets_index, @rocks_index]
+  end
+
   def render
     @rows.reverse.each do |row|
       puts row.map(&{true => '#', false => '.'}).join
@@ -79,6 +95,41 @@ class Chamber
   end
 end
 
+## Part 1
 chamber = Chamber.new(AOC.get_input(17))
-chamber.step while chamber.fallen_rocks < 2022
-puts chamber.max_height
+2022.times {chamber.place_rock}
+puts "Part 1: #{chamber.max_height}"
+
+## Part 2
+chamber = Chamber.new(AOC.get_input(17))
+# find a cycle
+states_seen = Set.new
+cycle_rocks = nil
+cycle_height = nil
+loop do
+  if states_seen.add?(chamber.state).nil?
+    # found a cycle, do it again
+    rocks_start = chamber.fallen_rocks
+    height_start = chamber.max_height
+    state = chamber.state
+    loop do
+      chamber.place_rock
+      break if chamber.state == state
+    end
+
+    cycle_rocks = chamber.fallen_rocks - rocks_start
+    cycle_height = chamber.max_height - height_start
+    break
+  end
+
+  chamber.place_rock
+end
+# pretend to do as many cycles as we can
+cycles_to_pretend = (1000000000000 - chamber.fallen_rocks) / cycle_rocks
+height_from_pretend = cycles_to_pretend * cycle_height
+# actually simulate the remaining rocks to capture the end portion
+remaining_rocks = (1000000000000 - chamber.fallen_rocks) % cycle_rocks
+remaining_rocks.times {chamber.place_rock}
+
+pt2 = height_from_pretend + chamber.max_height
+puts "Part 2: #{pt2}"
