@@ -1,4 +1,3 @@
-require 'set'
 require_relative './lib/aoc'
 require_relative './lib/parser'
 
