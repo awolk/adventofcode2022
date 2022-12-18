@@ -9,13 +9,13 @@ Sensor = Struct.new(:position, :beacon) do
   def by = beacon[1]
 
   def dist
-    (x - bx).abs + (y - by).abs
+    @dist ||= (x - bx).abs + (y - by).abs
   end
 
   def pts_in_row(row)
     width = dist - (row - y).abs
     return nil if width <= 0
-    (x-width..x+width)
+    x-width .. x+width
   end
 end
 
@@ -23,31 +23,34 @@ def overlap?(r1, r2)
   r1.cover?(r2.first) || r2.cover?(r1.first)
 end
 
-def combine(r1, r2)
-  [r1.first, r2.first].min .. [r1.last, r2.last].max
+def restrict_ranges(ranges, bound)
+  ranges.filter_map do |range|
+    if overlap?(range, bound)
+      [range.first, bound.first].max .. [range.last, bound.last].min
+    end
+  end
 end
 
-def intersect(r1, r2)
-  return nil if !overlap?(r1, r2)
-  [r1.first, r2.first].max .. [r1.last, r2.last].min
+def consolidate_ranges(ranges)
+  ranges = ranges.sort_by(&:first)
+
+  res = [ranges.shift]
+  ranges.each do |range|
+    if res.last.cover?(range.first)
+      old_range = res.pop
+      res.push(old_range.first .. [old_range.last, range.last].max)
+    else
+      res.push(range)
+    end
+  end
+  res
 end
 
 def visible_ranges(sensors, row)
   ranges = sensors.filter_map do |sensor|
     sensor.pts_in_row(row)
-  end.to_set
-
-  loop do
-    overlap = ranges.to_a.combination(2).find do |r1, r2|
-      overlap?(r1, r2)
-    end
-    break if overlap.nil?
-
-    ranges.subtract(overlap)
-    ranges.add(combine(*overlap))
   end
-  
-  ranges
+  consolidate_ranges(ranges)
 end
 
 def beacons(sensors, row)
@@ -68,22 +71,14 @@ sensors = parser.parse_all(AOC.get_input(15))
 pt1 = not_beacons_in_row(sensors, 2000000)
 puts "Part 1: #{pt1}"
 
-SIZE = 4000000
-(0..SIZE).each do |y|
-  # print progress every 2%
-  if y % 80000 == 0
-    puts "#{(y.to_f / SIZE * 100).round}%"
-  end
-
-  visible = visible_ranges(sensors, y).filter_map do |range|
-    intersect(range, 0..SIZE)
-  end
-
-  visible_count = visible.sum(&:size)
-  if visible_count == SIZE
-    x = visible.sort_by(&:first).first.last + 1
+bound = 0..4000000
+bound.each do |y|
+  AOC.report_progress(y, 4000000, 5)
+  visible = restrict_ranges(visible_ranges(sensors, y), bound)
+  if visible.sum(&:size) == bound.size - 1
+    x = visible.first.last + 1
     pt2 = y + x * 4000000
     puts "Part 2: #{pt2}"
-    break
+    return
   end
 end

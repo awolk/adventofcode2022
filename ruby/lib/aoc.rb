@@ -12,4 +12,11 @@ module AOC
   def self.char_matrix(input)
     Matrix.rows(input.split("\n").map(&:chars))
   end
+
+  def self.report_progress(x, total, every_perc)
+    every = total * every_perc / 100
+    if x % every == 0
+      puts "#{(x * 100.0 / total).round}%"
+    end
+  end
 end
