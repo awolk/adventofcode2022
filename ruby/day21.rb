@@ -21,6 +21,7 @@ line = P.seq(P.word, ': ', expr)
 parser = line.each_line
 exprs = parser.parse_all(AOC.get_input(21)).to_h
 
+# calculate the value of a name, given a hash of expressions
 def calc(name, exprs)
   expr = exprs[name]
   return Alg::Variable.new(name) if expr.nil?
@@ -32,31 +33,31 @@ end
 # given a single variable somewhere in operation, solve for the value of that variable
 def solve(operation, value)
   return value if operation.is_a?(Alg::Variable)
+
   if operation.lhs.is_a?(Integer)
-    # when the variable is on the right
     case operation.op
     when :+
-      return solve(operation.rhs, value - operation.lhs)
+      solve(operation.rhs, value - operation.lhs)
     when :-
-      return solve(operation.rhs, operation.lhs - value)
+      solve(operation.rhs, operation.lhs - value)
     when :*
-      return solve(operation.rhs, value / operation.lhs)
+      solve(operation.rhs, value / operation.lhs)
     when :/
-      return solve(operation.rhs, operation.lhs / value)
+      solve(operation.rhs, operation.lhs / value)
     end
   elsif operation.rhs.is_a?(Integer)
     case operation.op
     when :+
-      return solve(operation.lhs, value - operation.rhs)
+      solve(operation.lhs, value - operation.rhs)
     when :-
-      return solve(operation.lhs, value + operation.rhs)
+      solve(operation.lhs, value + operation.rhs)
     when :*
-      return solve(operation.lhs, value / operation.rhs)
+      solve(operation.lhs, value / operation.rhs)
     when :/
-      return solve(operation.lhs, value * operation.rhs)
+      solve(operation.lhs, value * operation.rhs)
     end
   else
-    raise "unhandled operation structure"
+    raise "one side of operation must be an integer"
   end
 end
 
@@ -64,8 +65,7 @@ end
 pt1 = calc('root', exprs)
 puts "Part 1: #{pt1}"
 
-# Part 2
-# what value of humn makes the two inputs to root equal
+# Part 2: what value of humn makes the two inputs to root equal
 l, _, r = exprs.delete('root')
 exprs.delete('humn')
 l_eval = calc(l, exprs)
@@ -75,4 +75,4 @@ pt2 = if l_eval.is_a?(Integer)
 else
   solve(l_eval, r_eval)
 end
-puts pt2
+puts "Part 2: #{pt2}"
