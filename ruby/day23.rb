@@ -60,10 +60,18 @@ elf_positions = matrix.each_with_index.filter_map do |chr, r, c|
   Complex(r, c) if chr == '#'
 end.to_set
 
-10.times do |i|
-  elf_positions = step(elf_positions, checks)
+pt1 = nil
+pt2 = nil
+(1..).each do |steps|
+  new_positions = step(elf_positions, checks)
   checks.rotate!(1)
+
+  pt2 = steps if new_positions == elf_positions
+  elf_positions = new_positions
+  pt1 = empty_tiles(elf_positions) if steps == 10
+
+  break if !pt1.nil? && !pt2.nil?
 end
 
-pt1 = empty_tiles(elf_positions)
 puts "Part 1: #{pt1}"
+puts "Part 2: #{pt2}"
